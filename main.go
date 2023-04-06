@@ -43,12 +43,21 @@ func fetchAPIAndStoreToS3(today string) {
 	}
 
 	var results []utils.MarketDataRowType
+	resultChannel := make(chan utils.MargetDataGrid, totalCnt/BatchSize+1)
+	errors := make(chan error, totalCnt/BatchSize+1)
 
 	for i := 0; i < totalCnt/BatchSize+1; i++ {
 		var url = createApiUrl(today, i*BatchSize+1, i*BatchSize+BatchSize)
+		go functions.FetchAPIAsync(url, resultChannel, errors)
+	}
 
-		var data = functions.FetchAPI(url).Grid_20161221000000000429_1
-		results = append(results, data.Row...)
+	for i := 0; i < totalCnt/BatchSize+1; i++ {
+		select {
+		case result := <-resultChannel:
+			results = append(results, result.Row...)
+		case err := <-errors:
+			log.Println(err)
+		}
 	}
 	b, err := json.Marshal(results)
 	if err != nil {
