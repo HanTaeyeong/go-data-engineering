@@ -44,7 +44,7 @@ func fetchAPIAndStoreToS3(today string) {
 
 	var results []utils.MarketDataRowType
 
-	for i := 0; i <= totalCnt/BatchSize+1; i++ {
+	for i := 0; i < totalCnt/BatchSize+1; i++ {
 		var url = createApiUrl(today, i*BatchSize+1, i*BatchSize+BatchSize)
 
 		var data = functions.FetchAPI(url).Grid_20161221000000000429_1
@@ -55,7 +55,8 @@ func fetchAPIAndStoreToS3(today string) {
 		log.Fatal("Data Marshaling failed!")
 	}
 	fmt.Println(totalCnt, len(results))
-	functions.UploadToS3("data-"+today, string(b))
+
+	functions.UploadToS3("datas/"+today, string(b))
 }
 
 func HandleLambdaEvent(event any) (MyResponse, error) {
@@ -69,6 +70,4 @@ func HandleLambdaEvent(event any) (MyResponse, error) {
 
 func main() {
 	lambda.Start(HandleLambdaEvent)
-
-	//goroutine.GoRoutinePractice()
 }
