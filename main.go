@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type MyResponse struct {
@@ -76,9 +78,5 @@ func HandleLambdaEvent(event any) (MyResponse, error) {
 }
 
 func main() {
-	//lambda.Start(HandleLambdaEvent)
-
-	var today = time.Now().AddDate(0, 0, -1).Format("20060102150405")
-	today = today[:8]
-	fetchAPIAndStoreToS3(today)
+	lambda.Start(HandleLambdaEvent)
 }
