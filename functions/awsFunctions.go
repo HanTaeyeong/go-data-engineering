@@ -2,8 +2,6 @@ package functions
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,8 +11,8 @@ import (
 
 func UploadToS3(fileName string, data string) {
 
-	accessKey := os.Getenv("accessKey")
-	secretKey := os.Getenv("secretKey")
+	accessKey := "AKIATKCDHFP542D2YJVR"
+	secretKey := "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"
 
 	var options = s3.Options{
 		Region:      "ap-northeast-2",
@@ -25,7 +23,7 @@ func UploadToS3(fileName string, data string) {
 		o.Region = "ap-northeast-2"
 	})
 
-	response, err := client.PutObject(context.TODO(), &s3.PutObjectInput{
+	_, err := client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String("farmers-realtime-data"),
 		Key:    aws.String(fileName),
 		Body:   strings.NewReader(data),
@@ -35,5 +33,5 @@ func UploadToS3(fileName string, data string) {
 		panic(err)
 	}
 
-	fmt.Print("uploadSuccess", response)
+	//fmt.Print("uploadSuccess", response)
 }

@@ -6,10 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"time"
-
-	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type MyResponse struct {
@@ -18,7 +15,7 @@ type MyResponse struct {
 
 func createApiUrl(date string, startRow int, endRow int) string {
 	var openApiUrl = "http://211.237.50.150:7080/openapi"
-	var apiKey = os.Getenv("apiKey")
+	var apiKey = "d2c63e5d185d5f97f718aa884df70a8d34813ff4808f97a2c2808e585b5fe327"
 	var dataType = "json"
 	var dataGrid = fmt.Sprintf("Grid_20161221000000000429_1/%d/%d", startRow, endRow)
 
@@ -54,18 +51,19 @@ func fetchAPIAndStoreToS3(today string) {
 	for i := 0; i < totalCnt/BatchSize+1; i++ {
 		select {
 		case result := <-resultChannel:
+			b, err := json.Marshal(result)
+			if err != nil {
+				log.Fatal("Data Marshaling failed!")
+			}
+			functions.UploadToS3("datas/"+today+"/"+fmt.Sprint(i), string(b))
 			results = append(results, result.Row...)
 		case err := <-errors:
 			log.Println(err)
 		}
 	}
-	b, err := json.Marshal(results)
-	if err != nil {
-		log.Fatal("Data Marshaling failed!")
-	}
-	fmt.Println(totalCnt, len(results))
 
-	functions.UploadToS3("datas/"+today, string(b))
+	fmt.Println(totalCnt)
+
 }
 
 func HandleLambdaEvent(event any) (MyResponse, error) {
@@ -78,5 +76,9 @@ func HandleLambdaEvent(event any) (MyResponse, error) {
 }
 
 func main() {
-	lambda.Start(HandleLambdaEvent)
+	//lambda.Start(HandleLambdaEvent)
+
+	var today = time.Now().AddDate(0, 0, -1).Format("20060102150405")
+	today = today[:8]
+	fetchAPIAndStoreToS3(today)
 }
